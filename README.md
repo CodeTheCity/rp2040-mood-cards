@@ -2,6 +2,8 @@
 
 This project was created as part of [CTC 28 - Connections](https://github.com/CodeTheCity/CTC28).
 
+![RP2040 Stamp Round Carrier board with battery and RFID-RC522 and cards](images/rp2040-mood-card-poc.png)
+
 ## What is it?
 
 A simple device for indicating mood and if you want to be approached or not. The current mood is set using the relevant RFID card.
