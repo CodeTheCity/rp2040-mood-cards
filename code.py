@@ -5,10 +5,12 @@ import neopixel
 import mfrc522
 
 # Update this to match the number of NeoPixel LEDs connected to your board.
+# The Stamp Round Carrier has 16 NeoPixel LEDs in the ring.
 num_pixels = 16
 pixels = neopixel.NeoPixel(board.NEOPIXEL, num_pixels, auto_write=False)
-pixels.brightness = 0.5
+pixels.brightness = 1.0
 
+CLEAR = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 150, 0)
 GREEN = (0, 255, 0)
@@ -16,7 +18,20 @@ CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
 
-pixels.fill(RED)
+# Pattern to display for each card UID
+# Colours go clockwise starting at left of USB connector
+
+# You will need to replace the card UIDs with the UIDs of your cards
+
+moods = {
+    '0xb3aebba9': [CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, GREEN, GREEN, GREEN, GREEN, GREEN, GREEN, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, ],
+    '0x23ae73a9': [RED, RED, RED, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, CLEAR, RED, RED, RED],
+    '0xf334aaa9': [CLEAR, YELLOW, YELLOW, CLEAR, CLEAR, YELLOW, YELLOW, CLEAR, CLEAR, YELLOW, YELLOW, CLEAR, CLEAR, YELLOW, YELLOW, CLEAR],
+    '0xc34219aa': [BLUE, BLUE, BLUE, BLUE, PURPLE, CYAN, CYAN, PURPLE, BLUE, BLUE, BLUE, BLUE, PURPLE, CYAN, CYAN, PURPLE]
+    
+    }
+
+pixels.fill(CLEAR)
 pixels.show()
 
 rdr = mfrc522.MFRC522(board.SCK, board.MOSI, board.MISO, board.D26, board.SDA)
@@ -40,25 +55,16 @@ try:
                 print("  - tag type: 0x%02x" % tag_type)
                 print("  - uid\t : 0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3]))
                 print('')
-
-                if rdr.select_tag(raw_uid) == rdr.OK:
-
-                    key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-
-                    if rdr.auth(rdr.AUTHENT1A, 8, key, raw_uid) == rdr.OK:
-                        print("Address 8 data: %s" % rdr.read(8))
-                        rdr.stop_crypto1()
+                
+                uid = "0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3])
+                if uid in moods:
+                    pixels.fill(CLEAR)
+                    for i in range(num_pixels):
+                        pixels[i] = moods[uid][i]
                         
-                        for i in range(num_pixels):
-                            pixels[i] = (0, 0, 0)
-                        for i in range(0, 8):
-                            pixles[i] = GREEN
-                            
-                        pixles.show()
-                    else:
-                        print("Authentication error")
+                    pixels.show()
                 else:
-                    print("Failed to select tag")
+                    print("Unknown card: %s" % uid)
 
 except KeyboardInterrupt:
     print("Bye")
